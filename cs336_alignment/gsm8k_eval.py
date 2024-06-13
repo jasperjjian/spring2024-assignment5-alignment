@@ -21,7 +21,8 @@ def evaluate_gsm(gsm_data, model):
         """
         questions.append(question_prompt)
     # get the model output
-    model_output = utils.generate_from_llama(questions, "/data/Meta-Llama-3-8B", model=model)
+    #model_output = utils.generate_from_llama(questions, "/data/Meta-Llama-3-8B", model=model)
+    model_output = utils.generate_from_sft_llama(questions, "/data/Meta-Llama-3-8B", model=model)
     # parse answers from output
     parsed_outputs = [utils.parse_gsm8k_response(output) for output in model_output]
 
@@ -40,7 +41,8 @@ if __name__ == "__main__":
     #total_questions = 0
     #total_correct = 0
 
-    llm = LLM(model="/data/Meta-Llama-3-8B")    
+    #llm = LLM(model="/data/Meta-Llama-3-8B")
+    llm = LLM(model="/home/c-jjian/assignments/spring2024-assignment5-alignment/models/sft")    
     # iterate through the topics
     # get the file path for the topic
    
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     total_correct = correct
 
     # serialize the results
-    save_path = os.path.join("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/gsm8k/" + "results.json")
+    save_path = os.path.join("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/sft/gsm8k/" + "results.json")
     serialized = utils.serialize_question_outputs([example["question"] for example in gsm_data], outputs, parsed_outputs, [example["answer"] for example in gsm_data], save_path)
 
     # get the accuracy
@@ -65,5 +67,5 @@ if __name__ == "__main__":
     compiled_results = pd.concat([compiled_results, new_results], ignore_index=True)
     
     print(compiled_results)
-    compiled_results.to_csv("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/gsm8k/overall_results.csv", index=False)
+    compiled_results.to_csv("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/sft/gsm8k/overall_results.csv", index=False)
 

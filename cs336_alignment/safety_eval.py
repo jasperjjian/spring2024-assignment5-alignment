@@ -23,7 +23,8 @@ def generate_safety_responses(safety_data, model):
         question_prompt = f"""{question}"""
         questions.append(question_prompt)
     # get the model output
-    model_output = utils.generate_from_llama(questions, "/data/Meta-Llama-3-8B", model=model)
+    #model_output = utils.generate_from_llama(questions, "/data/Meta-Llama-3-8B", model=model)
+    model_output = utils.generate_from_sft_llama(questions, "/data/Meta-Llama-3-8B", model=model)
     # parse answers from output
     parsed_outputs = [utils.parse_alpaca_response(output) for output in model_output]
 
@@ -33,7 +34,8 @@ def generate_safety_responses(safety_data, model):
 
 if __name__ == "__main__":
 
-    llm = LLM(model="/data/Meta-Llama-3-8B")
+    #llm = LLM(model="/data/Meta-Llama-3-8B")
+    llm = LLM(model="/home/c-jjian/assignments/spring2024-assignment5-alignment/models/sft")
     safety_test_file = "/home/c-jjian/assignments/spring2024-assignment5-alignment/data/simple_safety_tests/simple_safety_tests.csv"
     safety_file = process_safety_file(safety_test_file)
     _, parsed_outputs = generate_safety_responses(safety_file, model=llm)
@@ -50,7 +52,7 @@ if __name__ == "__main__":
     
     # write the results to json
 
-    json.dump(final_output, open("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/simple_safety_tests/llama_3_8b_results.json", "w"))
-    utils.write_jsonl("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/simple_safety_tests/llama_3_8b_results.jsonl", final_output)
+    json.dump(final_output, open("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/sft/simple_safety_tests/llama_3_8b_sft_results.json", "w"))
+    utils.write_jsonl("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/sft/simple_safety_tests/llama_3_8b_sft_results.jsonl", final_output)
 
 

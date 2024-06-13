@@ -1,6 +1,7 @@
 from vllm import LLM, SamplingParams
 import string
 import json
+import gzip
 
 def generate_from_llama(prompts : list[str], model_path : str, max_tokens : int = 1024, model=None):
     # Create a sampling params object, stopping generation on newline.
@@ -25,6 +26,32 @@ def generate_from_llama(prompts : list[str], model_path : str, max_tokens : int 
         # Answer:
         ```
         """
+        concatenated_prompts.append(concatenate)
+    # Create an LLM.
+    if model is None:
+        llm = LLM(model=model_path)
+    else:
+        llm = model
+    # Generate texts from the prompts. The output is a list of RequestOutput objects
+    # that contain the prompt, generated text, and other information.
+    outputs = llm.generate(concatenated_prompts, sampling_params)
+    # Print the outputs.
+    
+    """for output in outputs:
+        prompt = output.prompt
+        generated_text = output.outputs[0].text
+        print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")"""
+
+    return [output.outputs[0].text for output in outputs]
+
+def generate_from_sft_llama(prompts : list[str], model_path : str, max_tokens : int = 512, model=None):
+    # Create a sampling params object, stopping generation on newline.
+    sampling_params = SamplingParams(
+        temperature=0.0, top_p=1.0, max_tokens=max_tokens, stop=["```\n", "#Query:", '\n```']
+    )
+    concatenated_prompts = []
+    for prompt in prompts:
+        concatenate = f"""<|begin_of_text|>Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instruction:\n{prompt}\n\n### Response:\n"""
         concatenated_prompts.append(concatenate)
     # Create an LLM.
     if model is None:
@@ -76,6 +103,16 @@ def read_jsonl(file_path):
         for line in file:
             data.append(json.loads(line))
     return data
+
+def read_jsonl_stream(file_path, compressed=False):
+    if compressed:
+        with gzip.open(file_path, 'r') as file:
+            for line in file:
+                yield json.loads(line)
+    else:
+        with open(file_path, 'r') as file:
+            for line in file:
+                yield json.loads(line)
 
 def write_jsonl(file_path, json_list):
     with open(file_path, 'w') as file:

@@ -7,7 +7,7 @@ from typing import Any
 import torch
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizerBase
-from cs336_alignment import utils
+from cs336_alignment import utils, sft_loader
 
 def get_packed_sft_dataset(
     tokenizer: PreTrainedTokenizerBase,
@@ -36,7 +36,7 @@ def get_packed_sft_dataset(
         "input_ids" contains the token IDs for the language modeling inputs, and "labels" contains
         the token IDs for the language modeling labels.
     """
-    raise NotImplementedError
+    return sft_loader.SFTDataset(tokenizer, dataset_path, seq_length, shuffle)
 
 
 def run_iterate_batches(
@@ -59,7 +59,7 @@ def run_iterate_batches(
     Returns:
         Iterable over batches, where each batch has size `batch_size`.
     """
-    raise NotImplementedError
+    return sft_loader.get_batches_sft(dataset, batch_size, shuffle)
 
 
 def run_parse_mmlu_response(

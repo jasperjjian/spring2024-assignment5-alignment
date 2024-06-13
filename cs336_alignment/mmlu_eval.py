@@ -30,17 +30,25 @@ def evaluate_mmlu(mmlu_data, topic, model):
     for example in mmlu_data:
         question = example['question']
         options = example['options']
-        question_prompt = f"""Answer the following multiple choice question about {topic}. Respond with a single sentence of the form "The correct answer is _", filling the blank with the letter corresponding to the correct answer (i.e., A, B, C or D).
+        """question_prompt = f'Answer the following multiple choice question about {topic}. Respond with a single sentence of the form "The correct answer is _", filling the blank with the letter corresponding to the correct answer (i.e., A, B, C or D).
         Question: {question}
         A. {options[0]}
         B. {options[1]}
         C. {options[2]}
         D. {options[3]}
         Answer:
+        '"""
+        question_prompt = f"""Answer the following multiple choice question about {topic}. Respond with a single sentence of the form "The correct answer is _", filling the blank with the letter corresponding to the correct answer (i.e., A, B, C or D).
+        Question: {question}
+        A. {options[0]}
+        B. {options[1]}
+        C. {options[2]}
+        D. {options[3]}
         """
         questions.append(question_prompt)
     # get the model output
-    model_output = utils.generate_from_llama(questions, "/data/Meta-Llama-3-8B", model=model)
+    #model_output = utils.generate_from_llama(questions, "/data/Meta-Llama-3-8B", model=model)
+    model_output = utils.generate_from_sft_llama(questions, "/data/Meta-Llama-3-8B", model=model)
     # parse answers from output
     parsed_outputs = [utils.parse_mmlu_results(output, mmlu_data[i]) for i, output in enumerate(model_output)]
 
@@ -65,7 +73,8 @@ if __name__ == "__main__":
     total_questions = 0
     total_correct = 0
 
-    llm = LLM(model="/data/Meta-Llama-3-8B")    
+    #llm = LLM(model="/data/Meta-Llama-3-8B")    
+    llm = LLM(model="/home/c-jjian/assignments/spring2024-assignment5-alignment/models/sft")
     # iterate through the topics
     for topic in tqdm(mmlu_topics):
         # get the file path for the topic
@@ -75,11 +84,11 @@ if __name__ == "__main__":
         # get the number of questions
         total_questions += len(mmlu_data)
         # get the number of correct answers
-        correct, outputs, parsed_outputs = evaluate_mmlu(mmlu_data, topic, model=llm)
+        correct, outputs, parsed_outputs = evaluate_mmlu(mmlu_data, topic, llm)
         total_correct += correct
 
         # serialize the results
-        save_path = os.path.join("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/mmlu", topic + "_results.json")
+        save_path = os.path.join("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/sft/mmlu", topic + "_results.json")
         serialized = utils.serialize_question_outputs([example["question"] for example in mmlu_data], outputs, parsed_outputs, [example["answer"] for example in mmlu_data], save_path)
 
         # get the accuracy
@@ -95,5 +104,5 @@ if __name__ == "__main__":
     compiled_results = pd.concat([compiled_results, overall_results], ignore_index=True)
     # save the results to a csv file
     print(compiled_results)
-    compiled_results.to_csv("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/mmlu/overall_results.csv", index=False)
+    compiled_results.to_csv("/home/c-jjian/assignments/spring2024-assignment5-alignment/results/sft/mmlu/overall_results.csv", index=False)
 
